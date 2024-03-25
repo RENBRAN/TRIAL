@@ -1,70 +1,47 @@
-##############################################################################
+# -*- coding: utf-8 -*-
+#############################################################################
 #
-#    OmniaSolutions, Your own solutions
-#    Copyright (C) 2010 OmniaSolutions (<https://www.omniasolutions.website>). All Rights Reserved
-#    $Id$
+#    Cybrosys Technologies Pvt. Ltd.
 #
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+#    Copyright (C) 2023-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
+#    Author: Cybrosys Techno Solutions(<https://www.cybrosys.com>)
+#
+#    You can modify it under the terms of the GNU LESSER
+#    GENERAL PUBLIC LICENSE (LGPL v3), Version 3.
 #
 #    This program is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+#    GNU LESSER GENERAL PUBLIC LICENSE (LGPL v3) for more details.
 #
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#    You should have received a copy of the GNU LESSER GENERAL PUBLIC LICENSE
+#    (LGPL v3) along with this program.
+#    If not, see <http://www.gnu.org/licenses/>.
 #
-##############################################################################
-
-"""
-Created on 25 Aug 2016
-
-@author: Daniel Smerghetto
-"""
-
-from odoo import models
-from odoo import fields
-from odoo import _
+#############################################################################
+from odoo import api, fields, models
 
 
-class PlmConfigSettings(models.TransientModel):
-    _name = 'res.config.settings'
+class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    module_plm_automate_normal_bom = fields.Boolean(
-        _("Allow to create normal BOM if not exists and product are released."))
-    module_plm_automatic_weight = fields.Boolean(_("Automatic weight calculation"))
-    module_plm_compare_bom = fields.Boolean(_("Compare two BOM tool"))
-    module_plm_cutted_parts = fields.Boolean(_("Manage BOM explosion for cut parts"))
-    module_plm_date_bom = fields.Boolean(_("Manage BOM due to date"))
-    module_plm_engineering = fields.Boolean(_("Allow to use engineering BOM"))
-    module_plm_pack_and_go = fields.Boolean(_("Pack and go"))
-    module_plm_product_description_language_helper = fields.Boolean(_("Product Description Language Helper"))
-    module_plm_report_language_helper = fields.Boolean(_("Manage more Language PLM reports"))
-    module_plm_spare = fields.Boolean(_("Manage spare BOM and Spare Parts Manual"))
-    module_plm_web_revision = fields.Boolean(_("Create new revision from WEB"))
-    module_plm_auto_internalref = fields.Boolean("Populate internal reference with engineering part number")
-    module_plm_automated_convertion = fields.Boolean("Activate the server conversion tool")
-    module_plm_project = fields.Boolean("Activate the PLM Project connection")
-    module_plm_client_customprocedure = fields.Boolean("Activate the PLM Client mapping")
-    module_plm_box = fields.Boolean("PLM Box")
-    module_plm_suspended = fields.Boolean("Manage Product suspend code")
-    module_plm_auto_engcode = fields.Boolean("Enable Automatic Engineering Code")
-    module_plm_bom_summarize = fields.Boolean("Enable B.O.M. summarisation during the client upload")
-    module_activity_validation = fields.Boolean("Enable Eco /Ecr")
-    module_plm_web_3d = fields.Boolean("Enable 3D WebGl")
-    module_plm_web_3d_sale = fields.Boolean("Enable 3D WebGl for e-commerce and sale")
-    module_plm_breakages = fields.Boolean("Enable breakages management")
-    module_plm_ent_breakages_helpdesk = fields.Boolean("Enable breakages management on Helpdesk (Enterprise only)")
-    module_plm_pdf_workorder = fields.Boolean("Enable Plm PDF document inside workorder")
-    module_plm_sale_fix = fields.Boolean("Add plm groups permission to sale")
-    module_plm_document_multi_site = fields.Boolean("Multi server storage system")
-    module_plm_mrp_bom_update = fields.Boolean("MRP B.O.M Update")
-    module_plm_product_only_latest = fields.Boolean("Force last version on Manufacturing")
-    module_plm_purchase_only_latest = fields.Boolean("Force last version on purchase")
-    module_plm_sale_only_latest = fields.Boolean("Force last version on Sale")
-    module_plm_workflow_custom_action = fields.Boolean("Automatic workFlow actions")
-    
+    customer_credit_limit = fields.Boolean(string="Customer Credit Limit")
+
+    use_anglo_saxon_accounting = fields.Boolean(
+        string="Use Anglo-Saxon accounting", readonly=False,
+        related='company_id.anglo_saxon_accounting')
+
+    @api.model
+    def get_values(self):
+        res = super(ResConfigSettings, self).get_values()
+        params = self.env['ir.config_parameter'].sudo()
+        customer_credit_limit = params.get_param('customer_credit_limit',
+                                                 default=False)
+        res.update(customer_credit_limit=customer_credit_limit)
+        return res
+
+    def set_values(self):
+        super(ResConfigSettings, self).set_values()
+        self.env['ir.config_parameter'].sudo().set_param(
+            "customer_credit_limit",
+            self.customer_credit_limit)
